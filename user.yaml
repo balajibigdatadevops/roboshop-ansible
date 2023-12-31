@@ -1,0 +1,83 @@
+- name: installing & setting up user
+  hosts: user
+  become: yes
+  tasks:
+  - name: disabld nodejs and enable nodejs:18
+    ansible.builtin.shell: dnf module disable nodejs -y;dnf module enable nodejs:18 -y
+  
+  - name: install nodejs
+    ansible.builtin.dnf:
+      name: nodejs
+      state: present
+  
+  - name: create roboshop user
+    ansible.builtin.user: 
+       name: roboshop
+  
+  - name: recursively remove app directory
+    ansible.builtin.file:
+      path: /app
+      state: absent
+       
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+  
+  - name: download user zip file
+    ansible.builtin.get_url:
+      url: https://roboshop-builds.s3.amazonaws.com/user.zip
+      dest: /tmp/user.zip
+
+ ##default unarchive look file in ansible machine, but our zip file present in remote server. so remote_src: yes option required.
+  - name: unzipping the user file
+    ansible.builtin.unarchive:
+      src: /tmp/user.zip
+      dest: /app
+      remote_src: yes
+ 
+  - name: install depdencies
+    ansible.builtin.command: npm install
+    args:
+      chdir: /app    
+  
+  - name: copy catalogue service file
+    ansible.builtin.copy:
+      src: user.service
+      dest: /etc/systemd/system/user.service
+  
+  - name: reload user service
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+
+## lets start the catalogue service after data loaded
+  - name: copy mongo repo file
+    ansible.builtin.copy:
+      src: mongo.repo
+      dest: /etc/yum.repos.d/mongo.repo
+  
+  - name: install mongodb client
+    ansible.builtin.package:
+      name: mongodb-org-shell
+      state: present
+  
+  - name: get the catagories count
+    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online --quiet --eval 'db = db.getSiblingDB("users");db.users.count()'
+    register: user_count
+
+  - name:  print the count
+    ansible.builtin.debug:
+      msg: "user count: {{ user_count }}"
+
+  - name: load the schema
+    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online < /app/schema/user.js
+    when: user_count.stdout != "0" 
+
+    ## zero keep double quotes in when condition
+
+  - name: start and enable the catalogue service
+    ansible.builtin.service:
+      name: user
+      state: restarted
+      enabled: yes
+      
