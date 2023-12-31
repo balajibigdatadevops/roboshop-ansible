@@ -57,7 +57,7 @@
         state: present
   
   - name: get the catagories count
-    ansible.builtin.command: mongo --host mongodb.balajibigdatadevops.online --quiet --eval 'db = db.getSiblingDB(catalogue)';db.prodcuts.count()'
+    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online --quiet --eval 'db = db.getSiblingDB(catalogue)';db.prodcuts.count()'
     register: product_count
 
   - name:  print the count
@@ -65,7 +65,7 @@
       msg: "product count: {{ product_count }}"
 
   - name: load the schema
-    ansible.builtin.command: mongo --host mongodb.balajibigdatadevops.online < /app/schema/catalogue.js
+    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online < /app/schema/catalogue.js
     when: product_count.stdout != 0
 
   - name: start and enable the catalogue service
