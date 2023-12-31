@@ -1,0 +1,40 @@
+- name: nginx setup and frontend UI for roboshop
+  hosts: web
+  become: true
+  tasks:
+    - name: install nginx
+      ansible.builtin.package:
+        name: nginx
+        state: present
+  
+    - name: removing nginx defailt html directory
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: absent
+
+    - name: removing nginx defailt html directory
+      ansible.builtin.file:
+        path: /usr/share/nginx/html
+        state: directory
+
+    - name: Download the frontend content
+      ansible.builtin.get_url:
+        url: curl -o /tmp/web.zip https://roboshop-builds.s3.amazonaws.com/web.zip
+        dest: /tmp/web.zip
+
+    - name: unzipping the web file
+      ansible.builtin.unarchive:
+        src: /tmp/web.zip
+        dest: /usr/share/nginx/html
+        remote_src: yes
+
+    - name: copy roboshop conf file
+      ansible.builtin.copy:
+        src: roboshop.conf
+        dest: /etc/nginx/default.d/roboshop.conf 
+    
+    - name: start and enable nginx service
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+        enabled: yes
