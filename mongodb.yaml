@@ -4,7 +4,7 @@
    tasks:
    - name: copying monogo repo file
      ansible.builtin.copy:
-       src: monogo.repo
+       src: mongo.repo
        dest: /etc/yum.repos.d/mongo.repo
    - name: installing monogo 
      ansible.builtin.package:
