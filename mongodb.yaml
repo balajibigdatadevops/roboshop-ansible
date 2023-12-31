@@ -1,5 +1,5 @@
  - name: installing monogo
-   hosts: monogodb
+   hosts: mongodb
    become: true
    tasks:
    - name: copying monogo repo file
