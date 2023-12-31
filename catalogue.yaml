@@ -52,9 +52,9 @@
       dest: /etc/yum.repos.d/mongo.repo
   
   - name: install mongodb client
-     ansible.builtin.package:
-        name: mongodb-org-shell
-        state: present
+    ansible.builtin.package:
+      name: mongodb-org-shell
+      state: present
   
   - name: get the catagories count
     ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online --quiet --eval 'db = db.getSiblingDB(catalogue)';db.prodcuts.count()'
