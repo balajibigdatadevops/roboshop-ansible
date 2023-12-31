@@ -24,15 +24,15 @@
       path: /app
       state: directory
   
-  - name: download catalogue zip file
+  - name: download cart zip file
     ansible.builtin.get_url:
-      url: https://roboshop-builds.s3.amazonaws.com/catalogue.zip
-      dest: /tmp/catalogue.zip
+      url: https://roboshop-builds.s3.amazonaws.com/cart.zip
+      dest: /tmp/cart.zip
 
  ##default unarchive look file in ansible machine, but our zip file present in remote server. so remote_src: yes option required.
-  - name: unzipping the catalogue file
+  - name: unzipping the cart file
     ansible.builtin.unarchive:
-      src: /tmp/catalogue.zip
+      src: /tmp/cart.zip
       dest: /app
       remote_src: yes
  
@@ -41,43 +41,18 @@
     args:
       chdir: /app    
   
-  - name: copy catalogue service file
+  - name: copy cart service file
     ansible.builtin.copy:
-      src: catalogue.service
-      dest: /etc/systemd/system/catalogue.service
+      src: cart.service
+      dest: /etc/systemd/system/cart.service
   
-  - name: reload catalogue service
+  - name: reload cart service
     ansible.builtin.systemd_service:
       daemon_reload: true
 
-## lets start the catalogue service after data loaded
-  - name: copy mongo repo file
-    ansible.builtin.copy:
-      src: mongo.repo
-      dest: /etc/yum.repos.d/mongo.repo
-  
-  - name: install mongodb client
-    ansible.builtin.package:
-      name: mongodb-org-shell
-      state: present
-  
-  - name: get the catagories count
-    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online --quiet --eval 'db = db.getSiblingDB("catalogue");db.products.count()'
-    register: product_count
-
-  - name:  print the count
-    ansible.builtin.debug:
-      msg: "product count: {{ product_count }}"
-
-  - name: load the schema
-    ansible.builtin.command: mongo --host mongo.balajibigdatadevops.online < /app/schema/catalogue.js
-    when: product_count.stdout != "0" 
-
-    ## zero keep double quotes in when condition
-
-  - name: start and enable the catalogue service
+  - name: start and enable the cart service
     ansible.builtin.service:
-      name: catalogue
+      name: cart
       state: restarted
       enabled: yes
       
