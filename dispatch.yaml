@@ -1,0 +1,51 @@
+- name: dispatch
+  hosts: dispatch
+  become: true
+  tasks:
+
+  - name: install GoLang
+    ansible.builtin.dnf:
+      name: golang
+      state: present
+    
+  -  name: create roboshop user
+     ansible.builtin.user: 
+       name: roboshop
+
+  - name: recursively remove app directory
+    ansible.builtin.file:
+      path: /app
+      state: absent
+        
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: download dispatch zip file
+    ansible.builtin.get_url:
+      url: https://roboshop-builds.s3.amazonaws.com/dispatch.zip
+      dest: /tmp/dispatch.zip
+
+  ##default unarchive look file in ansible machine, but our zip file present in remote server. so remote_src: yes option required.
+  - name: unzipping the dispatch file
+    ansible.builtin.unarchive:
+      src: /tmp/dispatch.zip
+      dest: /app
+      remote_src: yes
+
+  - name: download the depedencies
+    ansible.builtin.command: go mod init dispatch go get  go build
+    args:
+      chdir: /app
+
+  - name: reload dispatch service
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+  
+  - name: start and enable the dispatch service
+    ansible.builtin.service:
+      name: dispatch
+      state: restarted
+      enabled: yes
+      

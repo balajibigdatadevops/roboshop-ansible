@@ -1,0 +1,59 @@
+- name: payment
+  hosts: payment
+  become: true
+  tasks:
+  - name: install packages
+    ansible.builtin.dnf:
+      name: " {{ item }}"
+      state: present
+    loop:
+    - python36
+    - gcc
+    - python3-devel
+
+  - name: add roboshop user
+    ansible.builtin.user: roboshop
+
+  - name: recursively remove app directory
+    ansible.builtin.file:
+      path: /app
+      state: absent
+       
+  - name: create app directory
+    ansible.builtin.file:
+      path: /app
+      state: directory
+
+  - name: download payment zip file
+    ansible.builtin.get_url:
+      url: https://roboshop-builds.s3.amazonaws.com/payment.zip
+      dest: /tmp/payment.zip
+
+ ##default unarchive look file in ansible machine, but our zip file present in remote server. so remote_src: yes option required.
+  - name: unzipping the payment file
+    ansible.builtin.unarchive:
+      src: /tmp/payment.zip
+      dest: /app
+      remote_src: yes
+  
+  - name: install depedencies
+    ansible.builtin.command: pip3.6 install -r requirements.txt
+    args:
+      chdir: /app
+
+  - name: copy payment service file
+     ansible.builtin.copy:
+       src: payment.service
+       dest: /etc/systemd/system/payment.service
+    
+  - name: reload payment service file
+    ansible.builtin.systemd_service:
+      daemon_reload: true
+  
+  - name: start and enable payment
+    ansible.builtin.service:
+      name: payment
+      state: restarted
+      enabled: yes
+  
+  
