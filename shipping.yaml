@@ -72,10 +72,10 @@
     when: schema.stdout != "1"
 
   - name: start and enable the shipping service
-      ansible.builtin.service:
-        name: shipping
-        state: restarted
-        enabled: yes
+    ansible.builtin.service:
+      name: shipping
+      state: restarted
+      enabled: yes
       
 
     
