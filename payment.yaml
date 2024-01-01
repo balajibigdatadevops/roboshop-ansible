@@ -42,9 +42,9 @@
       chdir: /app
 
   - name: copy payment service file
-     ansible.builtin.copy:
-       src: payment.service
-       dest: /etc/systemd/system/payment.service
+    ansible.builtin.copy:
+      src: payment.service
+      dest: /etc/systemd/system/payment.service
     
   - name: reload payment service file
     ansible.builtin.systemd_service:
