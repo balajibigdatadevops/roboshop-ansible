@@ -71,7 +71,7 @@
 
   - name: load the schema
     ansible.builtin.shell: mongo --host mongo.balajibigdatadevops.online < /app/schema/catalogue.js
-    when: product_count.stdout != "0" 
+    when: product_count.stdout == "0" 
 
     ## zero keep double quotes in when condition
 
